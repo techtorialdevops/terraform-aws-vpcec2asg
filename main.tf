@@ -32,14 +32,66 @@ resource "aws_subnet" "private_subnets" {
 resource "aws_security_group" "public_sg" {
   vpc_id = aws_vpc.terraform6.id
 
-  # Define inbound and outbound rules as needed
+  // Define inbound rules for public subnets
+  // Allow inbound traffic for ports 80 (HTTP), 443 (HTTPS), and 22 (SSH)
+  // from any source (0.0.0.0/0) for public subnets
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  // Define outbound rules for public subnets
+  // Allow all outbound traffic from public subnets
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" // All protocols
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_security_group" "private_sg" {
   vpc_id = aws_vpc.terraform6.id
 
-  # Define inbound and outbound rules as needed
+  // Define outbound rules for private subnets
+  // Allow all outbound traffic from private subnets
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" // All protocols
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
+
+// Add inbound rule for RDS access
+// Allow inbound traffic on port 3306 (MySQL) from specific sources
+resource "aws_security_group_rule" "rds_access" {
+  type              = "ingress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  security_group_id = aws_security_group.private_sg.id
+
+  // Adjust the source_cidr_blocks parameter to allow access only from specific sources
+  cidr_blocks = ["0.0.0.0/0"] // Example: Allow access from any IP address
+}
+
 
 
 resource "aws_launch_configuration" "ec2_launch_config" {
