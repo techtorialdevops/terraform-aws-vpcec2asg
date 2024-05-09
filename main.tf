@@ -273,3 +273,19 @@ resource "aws_route" "private_route" {
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id = aws_nat_gateway.nat_gateway[count.index].id
 }
+
+resource "aws_route53_zone" "example_zone" {
+  name = "example.com"
+}
+
+resource "aws_route53_record" "example_lb_record" {
+  zone_id = aws_route53_zone.example_zone.zone_id
+  name    = "example.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app_lb.dns_name
+    zone_id                = aws_lb.app_lb.zone_id
+    evaluate_target_health = true
+  }
+}
