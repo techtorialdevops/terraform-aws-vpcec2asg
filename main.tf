@@ -100,6 +100,17 @@ resource "aws_launch_configuration" "ec2_launch_config" {
   instance_type = "t2.micro"      # Update with your desired instance type
   key_name = "tuncay"
   security_groups = [aws_security_group.public_sg.id]
+  user_data     = <<-EOF
+                  #!/bin/bash
+                  yum update -y
+                  yum install -y httpd php php-mysqlnd
+                  systemctl start httpd
+                  systemctl enable httpd
+                  wget -c https://wordpress.org/latest.tar.gz
+                  tar -xvzf latest.tar.gz -C /var/www/html
+                  cp -r /var/www/html/wordpress/* /var/www/html/
+                  chown -R apache:apache /var/www/html/
+                  EOF
 
   lifecycle {
     create_before_destroy = true
